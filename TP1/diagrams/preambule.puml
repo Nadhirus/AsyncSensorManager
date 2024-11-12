@@ -1,0 +1,57 @@
+@startuml
+!pragma teoz true
+box "Tbash (terminal) process"
+participant bash
+
+box "preambule process (child process)" #lightblue
+participant "./preambule" as main
+participant "thread_1:pthread_t" as thread1
+participant " mutex:pthread_mutex_t" as mutex
+participant "semaphore:sem_t" as semaphore
+end box
+end box
+
+activate bash
+bash -> main --++ : "./preambule"
+
+main -> semaphore:"sem_unlink"
+activate semaphore #gold
+return
+main -> semaphore:"sem_open"
+activate semaphore #gold
+return
+
+main -> thread1:"pthread_create"
+activate thread1 #FFBBBB
+thread1 --> main
+note over thread1 : produce
+
+main -> thread1 :"pthread_join"
+deactivate main
+
+thread1 -> mutex: "pthread_mutex_lock"
+activate mutex #plum
+return
+
+thread1 -> mutex: "pthread_mutex_unlock"
+activate mutex #plum
+return
+
+thread1 -> semaphore: "sem_post"
+activate semaphore #gold
+return
+
+thread1 -> semaphore: "sem_wait"
+activate semaphore #gold
+return 
+
+thread1 -> thread1 : "pthread_exit"
+thread1 --> main --++
+
+main -> semaphore : "sem_destroy"
+activate semaphore #gold
+return
+
+main -> bash --++: "ERROR_SUCCESS"
+
+@enduml
