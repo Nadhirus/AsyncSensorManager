@@ -1,6 +1,8 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -g -w  # -w will suppress all warnings
+CFLAGS = -g  # Default flags without warnings
+DFLAGS = -DDEBUG        # Debug-specific flag
+DEBUG_FLAGS = -Wall -Wextra  # Flags for enabling warnings in debug mode
 
 # Files
 SRC = multitaskingAccumulator.c acquisitionManagerPOSIX.c displayManager.c messageAdder.c msg.c sensorManager.c display.c
@@ -22,6 +24,10 @@ $(TARGET): $(OBJ)
 %.d: %.c
 	$(CC) -MM $(CFLAGS) $< > $@
 
+# Debug build
+debug: CFLAGS += $(DFLAGS) $(DEBUG_FLAGS)  # Add debug flags and warning flags
+debug: clean $(TARGET)      # Build clean and then compile with debug
+
 # Include dependencies
 -include $(DEP)
 
@@ -30,5 +36,5 @@ clean:
 	rm -f $(OBJ) $(TARGET) $(DEP)
 
 # PHONY targets to prevent conflicts with files of the same name
-.PHONY: all clean
+.PHONY: all clean debug
 

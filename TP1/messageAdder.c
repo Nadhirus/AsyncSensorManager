@@ -14,10 +14,10 @@
 pthread_t consumer;
 // Message computed
 volatile MSG_BLOCK out;
-
-volatile MSG_BLOCK in;
 // Consumer count storage
 volatile unsigned int consumeCount = 0;
+
+volatile MSG_BLOCK in;
 
 /**
  * Increments the consume count.
@@ -78,21 +78,14 @@ static void *sum(void *parameters)
 {
 	D(printf("[messageAdder]Thread created for sum with id %d\n", gettid()));
 	unsigned int i = 0;
-
+	
 	while (i < ADDER_LOOP_LIMIT)
 	{
 		i++;
 		sleep(ADDER_SLEEP_TIME);
 
 		in = getMessage();
-		// at each 4 messages we reinitialize the accumulator
-		if (i % 4 == 0)
-		{
-			for (size_t i = 0; i < DATA_SIZE; i++)
-			{
-				out.mData[i] = 0;
-			}
-		}
+
 		messageAdd(&out, &in);
 
 		incrementConsumeCount();

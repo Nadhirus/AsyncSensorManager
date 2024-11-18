@@ -48,11 +48,11 @@ static void *display(void *parameters)
 	MSG_BLOCK currentsum;
 	while (diffCount < DISPLAY_LOOP_LIMIT)
 	{
-		diffCount++;
 		sleep(DISPLAY_SLEEP_TIME);
 		currentsum = getCurrentSum();
 		print(getProducedCount(), getConsumedCount());
 		messageDisplay(&currentsum);
+		diffCount ++;
 	}
 	printf("[displayManager] %d termination\n", gettid());
 	pthread_exit(NULL); // pour tuer le thread correctement
