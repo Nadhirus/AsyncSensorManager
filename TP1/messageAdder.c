@@ -93,5 +93,5 @@ static void *sum(void *parameters)
 		incrementConsumeCount();
 	}
 	printf("[messageAdder] %d termination\n", gettid());
-	// TODO
+	pthread_exit(NULL); // pour tuer le thread correctement
 }
