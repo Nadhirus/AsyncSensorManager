@@ -1,0 +1,18 @@
+.DS_Store
+.vscode
+*.o
+mySoftwarePosix
+mySoftwareAtomic
+mySoftwareTestAndSet
+
+# Ignore object files
+*.o
+
+# Ignore dependency files
+*.d
+
+# Ignore compiled binaries
+# For example, ignoring all files that are typically compiled
+# Adjust this according to the binary types you generate (e.g., .out, .exe, etc.)
+*.out
+*.exe
