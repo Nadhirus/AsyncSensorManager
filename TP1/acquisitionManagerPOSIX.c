@@ -72,21 +72,6 @@ unsigned int getProducedCount(void)
 	return p;
 }
 
-MSG_BLOCK getMessage(void)
-{
-	MSG_BLOCK message;
-	do
-	{
-		getInput(0, &message); // Get input for the message
-		if (messageCheck(&message) == 0)
-		{
-			printf("Message checksum failed\n");
-		}
-	} while (messageCheck(&message) == 0); // Repeat until the checksum is correct
-
-	return message;
-}
-
 // accessors to limit semaphore and mutex usage outside of this C module.
 void lockBuffer(void)
 {
@@ -118,6 +103,21 @@ void signalFullBuffer(void)
 	sem_post(&buffFull);
 }
 
+MSG_BLOCK getMessage(void)
+{
+	MSG_BLOCK message;
+
+	waitForFullBuffer();
+	lockBuffer();
+
+	message = buffer[readIndex];
+	readIndex = (readIndex + 1) % BUFFER_SIZE;
+
+	signalEmptyBuffer();
+	unlockBuffer();
+	return message;
+}
+
 unsigned int acquisitionManagerInit(void)
 {
 	unsigned int i;
@@ -134,6 +134,10 @@ unsigned int acquisitionManagerInit(void)
 		{
 			perror("Producer thread creation failed");
 		}
+		else
+		{
+			printf("Producer thread created\n");
+		}
 	}
 
 	return ERROR_SUCCESS;
@@ -148,6 +152,10 @@ void acquisitionManagerJoin(void)
 		if (pthread_join(producers[i], NULL) != 0)
 		{
 			perror("Producer thread join failed");
+		}
+		else
+		{
+			printf("Producer thread joined\n");
 		}
 	}
 
@@ -164,18 +172,28 @@ void *produce(void *params)
 {
 	D(printf("[acquisitionManager]Producer created with id %d\n", gettid()));
 	unsigned int i = 0;
+	MSG_BLOCK message;
+
 	while (i < PRODUCER_LOOP_LIMIT)
 	{
 		i++;
 		sleep(PRODUCER_SLEEP_TIME + (rand() % 5));
 		// get the message from iSensor after it has been checked
-		MSG_BLOCK receivedMessage = getMessage();
+		do
+		{
+			getInput(rand(), &message); // Get input for the message
+			if (messageCheck(&message) == 0)
+			{
+				printf("Message checksum failed\n");
+			}
+		} while (messageCheck(&message) == 0); // Repeat until the checksum is correct
+
 		// wait for an empty slot in the buffer
 		waitForEmptyBuffer();
 		// Lock access to the buffer
 		lockBuffer();
 		// write the message in the buffer
-		buffer[writeIndex] = receivedMessage;
+		buffer[writeIndex] = message;
 		// increment the write index within wrap bounds
 		writeIndex = (writeIndex + 1) % BUFFER_SIZE;
 		// increment the produced count
