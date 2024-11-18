@@ -22,8 +22,6 @@ unsigned int readIndex = 0;	 // Index where the consumer will read
 // producer count storage
 volatile unsigned int produceCount = 0;
 
-
-
 pthread_t producers[4];
 
 static void *produce(void *params);
@@ -183,11 +181,9 @@ void *produce(void *params)
 		// get the message from iSensor after it has been checked
 		do
 		{
-			getInput(r_rand(), &message); // Get input for the message
-			if (messageCheck(&message) == 0)
-			{
-				printf("Message checksum failed\n");
-			}
+			// getInput(r_rand(), &message); // Get input for the message
+			getInput(0, &message); // Get input for the message
+
 		} while (messageCheck(&message) == 0); // Repeat until the checksum is correct
 
 		// wait for an empty slot in the buffer
@@ -210,15 +206,13 @@ void *produce(void *params)
 	pthread_exit(NULL); // pour tuer le thread correctement
 }
 
-
-
 /*
 Potential improvements to ask the teacher about
 - incrementing the producer count could cause a race condition, what is the solution
 a mutex or an elegant c11 atomic?
-- the number of sensor? I used r_rand for a thred safe execution but it could be a misunderstanding of the software architecutre and 
+- the number of sensor? I used r_rand for a thred safe execution but it could be a misunderstanding of the software architecutre and
 I could somehow get it from the iSensor Interface
-- 
+-
 
 
 */

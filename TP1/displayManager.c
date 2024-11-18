@@ -25,7 +25,7 @@ void displayManagerInit(void)
 	}
 	else
 	{
-		printf("displayManager thread created");
+		printf("displayManager thread created\n");
 	}
 }
 
@@ -37,7 +37,7 @@ void displayManagerJoin(void)
 	}
 	else
 	{
-		printf("displayManager thread created");
+		printf("displayManager thread joined\n");
 	}
 }
 
@@ -48,9 +48,10 @@ static void *display(void *parameters)
 	MSG_BLOCK currentsum;
 	while (diffCount < DISPLAY_LOOP_LIMIT)
 	{
+		diffCount++;
 		sleep(DISPLAY_SLEEP_TIME);
 		currentsum = getCurrentSum();
-		print(getProductioncount(), getConsumedCount());
+		print(getProducedCount(), getConsumedCount());
 		messageDisplay(&currentsum);
 	}
 	printf("[displayManager] %d termination\n", gettid());

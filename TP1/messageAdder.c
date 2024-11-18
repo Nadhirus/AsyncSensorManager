@@ -39,6 +39,11 @@ unsigned int getConsumedCount()
 	return consumeCount;
 }
 
+// increment consume count
+static void incrementConsumeCount(void){
+	consumeCount++;
+}
+
 void messageAdderInit(void)
 {
 	out.checksum = 0;
@@ -48,11 +53,11 @@ void messageAdderInit(void)
 	}
 	if (pthread_create(&consumer, NULL, sum, NULL) != 0)
 	{
-		perror("Producer thread creation failed");
+		perror("Consumer thread creation failed");
 	}
 	else
 	{
-		printf("Producer thread created\n");
+		printf("Consumer thread created\n");
 	}
 }
 
@@ -95,3 +100,15 @@ static void *sum(void *parameters)
 	printf("[messageAdder] %d termination\n", gettid());
 	pthread_exit(NULL); // pour tuer le thread correctement
 }
+
+
+/*
+Potential improvements to ask the teacher about
+- incrementing the producer count could cause a race condition, what is the solution
+a mutex or an elegant c11 atomic?
+- the number of sensor? I used r_rand for a thred safe execution but it could be a misunderstanding of the software architecutre and 
+I could somehow get it from the iSensor Interface
+- 
+
+
+*/
