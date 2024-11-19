@@ -6,7 +6,7 @@
 /**
 * Gets a message that represents the current value of the sum.
 */
-MSG_BLOCK getCurrentSum();
+SUM_MSG_BLOCK getCurrentSum();
 
 /**
 * Get the number of consumed messages.

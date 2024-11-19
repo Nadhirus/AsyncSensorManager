@@ -18,7 +18,6 @@ pthread_t consumer;
 volatile MSG_BLOCK out;
 // Consumer count storage
 _Atomic unsigned int consumeCount = 0;
-
 volatile MSG_BLOCK in;
 
 
@@ -33,9 +32,12 @@ static void incrementConsumeCount(void);
  */
 static void *sum(void *parameters);
 
-MSG_BLOCK getCurrentSum()
+SUM_MSG_BLOCK getCurrentSum()
 {
-	return out;
+	SUM_MSG_BLOCK returnsum;
+	returnsum.currectCount = getConsumedCount();
+	returnsum.sum = out;
+	return returnsum;
 }
 
 unsigned int getConsumedCount()
@@ -87,9 +89,7 @@ static void *sum(void *parameters)
 	{
 		i++;
 		sleep(ADDER_SLEEP_TIME);
-
 		in = getMessage();
-
 		messageAdd(&out, &in);
 		incrementConsumeCount();
 	}

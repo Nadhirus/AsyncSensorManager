@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "iacquisitionmanager.h": "c",
+        "debug.h": "c",
+        "imessageadder.h": "c"
+    }
+}
