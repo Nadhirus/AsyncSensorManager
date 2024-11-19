@@ -37,42 +37,6 @@ pthread_mutex_t produceCountLock;
 sem_t buffEmpty; // semaphore to indicate the number of empty spots in the buffer
 sem_t buffFull;	 // semaphore to indicate the number of full spots in the buffer
 
-/*
- * Creates the synchronization elements.
- * @return ERROR_SUCCESS if the init is ok, ERROR_INIT otherwise
- */
-static unsigned int createSynchronizationObjects(void);
-
-/*
- * Increments the produce count.
- */
-static void incrementProducedCount(void);
-
-static unsigned int createSynchronizationObjects(void)
-{
-
-	if (sem_init(&buffEmpty, 0, BUFFER_SIZE) == -1 || sem_init(&buffFull, 0, 0) == -1)
-	{
-		perror("Semaphore creation failed");
-		return ERROR_INIT;
-	}
-	pthread_mutex_init(&bufferLock, NULL);
-	printf("[acquisitionManager]Semaphore created\n");
-	return ERROR_SUCCESS;
-}
-
-static void incrementProducedCount(void)
-{
-	produceCount++;
-}
-
-unsigned int getProducedCount(void)
-{
-	unsigned int p = 0;
-	p = produceCount;
-	return p;
-}
-
 // accessors to limit semaphore and mutex usage outside of this C module.
 void lockBuffer(void)
 {
@@ -104,7 +68,7 @@ void signalFullBuffer(void)
 	sem_post(&buffFull);
 }
 
-void lockeProducedCount(void)
+void lockProducedCount(void)
 {
 	pthread_mutex_lock(&produceCountLock);
 }
@@ -112,6 +76,46 @@ void lockeProducedCount(void)
 void unlockProducedCount(void)
 {
 	pthread_mutex_unlock(&produceCountLock);
+}
+
+/*
+ * Creates the synchronization elements.
+ * @return ERROR_SUCCESS if the init is ok, ERROR_INIT otherwise
+ */
+static unsigned int createSynchronizationObjects(void);
+
+/*
+ * Increments the produce count.
+ */
+static void incrementProducedCount(void);
+
+static unsigned int createSynchronizationObjects(void)
+{
+
+	if (sem_init(&buffEmpty, 0, BUFFER_SIZE) == -1 || sem_init(&buffFull, 0, 0) == -1)
+	{
+		perror("Semaphore creation failed");
+		return ERROR_INIT;
+	}
+	pthread_mutex_init(&bufferLock, NULL);
+	printf("[acquisitionManager]Semaphore created\n");
+	return ERROR_SUCCESS;
+}
+
+static void incrementProducedCount(void)
+{
+	lockProducedCount();
+	produceCount++;
+	unlockProducedCount();
+}
+
+unsigned int getProducedCount(void)
+{
+	unsigned int p = 0;
+	lockProducedCount();
+	p = produceCount;
+	unlockProducedCount();
+	return p;
 }
 
 MSG_BLOCK getMessage(void)
@@ -206,9 +210,7 @@ void *produce(void *params)
 		// increment the write index within wrap bounds
 		writeIndex = (writeIndex + 1) % BUFFER_SIZE;
 		// increment the produced count
-		lockeProducedCount();
 		incrementProducedCount();
-		unlockProducedCount();
 		// post semaphore to account for filled slot
 		signalFullBuffer();
 		// unlock the buffer

@@ -19,6 +19,19 @@ volatile unsigned int consumeCount = 0;
 
 volatile MSG_BLOCK in;
 
+pthread_mutex_t consumerCountLock;
+
+
+
+void lockConsumerCount(void)
+{
+	pthread_mutex_lock(&consumerCountLock);
+}
+
+void unlockConsumerCount(void)
+{
+	pthread_mutex_unlock(&consumerCountLock);
+}
 /**
  * Increments the consume count.
  */
@@ -36,7 +49,11 @@ MSG_BLOCK getCurrentSum()
 
 unsigned int getConsumedCount()
 {
-	return consumeCount;
+	unsigned int c = 0;
+	lockConsumerCount();
+	c = consumeCount;
+	unlockConsumerCount();
+	return c;
 }
 
 // increment consume count
@@ -87,8 +104,9 @@ static void *sum(void *parameters)
 		in = getMessage();
 
 		messageAdd(&out, &in);
-
+		lockConsumerCount();
 		incrementConsumeCount();
+		unlockConsumerCount();
 	}
 	printf("[messageAdder] %d termination\n", gettid());
 	pthread_exit(NULL); // pour tuer le thread correctement
