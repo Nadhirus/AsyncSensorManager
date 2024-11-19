@@ -9,29 +9,20 @@
 #include "multitaskingAccumulator.h"
 #include "iAcquisitionManager.h"
 #include "debug.h"
+#include <stdatomic.h>
+
 
 // consumer thread
 pthread_t consumer;
 // Message computed
 volatile MSG_BLOCK out;
 // Consumer count storage
-volatile unsigned int consumeCount = 0;
+_Atomic unsigned int consumeCount = 0;
 
 volatile MSG_BLOCK in;
 
-pthread_mutex_t consumerCountLock;
 
 
-
-void lockConsumerCount(void)
-{
-	pthread_mutex_lock(&consumerCountLock);
-}
-
-void unlockConsumerCount(void)
-{
-	pthread_mutex_unlock(&consumerCountLock);
-}
 /**
  * Increments the consume count.
  */
@@ -49,16 +40,12 @@ MSG_BLOCK getCurrentSum()
 
 unsigned int getConsumedCount()
 {
-	unsigned int c = 0;
-	lockConsumerCount();
-	c = consumeCount;
-	unlockConsumerCount();
-	return c;
+	return atomic_load(&consumeCount);
 }
 
 // increment consume count
 static void incrementConsumeCount(void){
-	consumeCount++;
+atomic_fetch_add(&consumeCount, 1);	
 }
 
 void messageAdderInit(void)
@@ -104,9 +91,7 @@ static void *sum(void *parameters)
 		in = getMessage();
 
 		messageAdd(&out, &in);
-		lockConsumerCount();
 		incrementConsumeCount();
-		unlockConsumerCount();
 	}
 	printf("[messageAdder] %d termination\n", gettid());
 	pthread_exit(NULL); // pour tuer le thread correctement

@@ -1,40 +1,44 @@
-# Compiler and flags
-CC = gcc
-CFLAGS = -g  # Default flags without warnings
-DFLAGS = -DDEBUG        # Debug-specific flag
-DEBUG_FLAGS = -Wall -Wextra  # Flags for enabling warnings in debug mode
+.POSIX:
+CC      = cc
+CFLAGS  = -std=c11 -Wall -Wextra -O3 -mcx16 -pthread #-DDEBUG
+LDFLAGS = -pthread
+#LDLIBS  = -latomic
 
-# Files
-SRC = multitaskingAccumulator.c acquisitionManagerPOSIX.c displayManager.c messageAdder.c msg.c sensorManager.c display.c
-OBJ = $(SRC:.c=.o)
-TARGET = program
+C= $(wildcard *.c)
+H= $(wildcard *.h)
+PREAMBULE_SRCS := preambule.c
+POSIX_SRCS := $(filter-out %preambule.c %Atomic.c %TestAndSet.c, $(C))
+ATOMIC_SRCS := $(filter-out %preambule.c %POSIX.c %TestAndSet.c, $(C))
+TESTANDSET_SRCS := $(filter-out %preambule.c %POSIX.c %Atomic.c, $(C))
+DEPS= $(H:.h)
+PREAMBULE_OBJS= $(PREAMBULE_SRCS:.c=.o)
+POSIX_OBJS= $(POSIX_SRCS:.c=.o)
+ATOMIC_OBJS= $(ATOMIC_SRCS:.c=.o)
+TESTANDSET_OBJS= $(TESTANDSET_SRCS:.c=.o)
 
-# Dependency files
-DEP = $(SRC:.c=.d)
+preambule: $(PREAMBULE_OBJS) $(DEPS)
+	$(CC) $(LDFLAGS) -o preambule $(PREAMBULE_OBJS) $(LDLIBS)
 
-# Build rules
-all: $(TARGET)
+posix: $(POSIX_OBJS) $(DEPS)
+	$(CC) $(LDFLAGS) -o multitaskingAccumulatorPosix $(POSIX_OBJS) $(LDLIBS)
 
-$(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET)
+atomic: $(ATOMIC_OBJS) $(DEPS)
+	$(CC) $(LDFLAGS) -o multitaskingAccumulatorAtomic $(ATOMIC_OBJS) $(LDLIBS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+testandset: $(TESTANDSET_OBJS) $(DEPS)
+	$(CC) $(LDFLAGS) -o multitaskingAccumulatorTestAndSet $(TESTANDSET_OBJS) $(LDLIBS)
 
-%.d: %.c
-	$(CC) -MM $(CFLAGS) $< > $@
-
-# Debug build
-debug: CFLAGS += $(DFLAGS) $(DEBUG_FLAGS)  # Add debug flags and warning flags
-debug: clean $(TARGET)      # Build clean and then compile with debug
-
-# Include dependencies
--include $(DEP)
-
-# Clean up the build
 clean:
-	rm -f $(OBJ) $(TARGET) $(DEP)
+	rm -f preambule multitaskingAccumulatorPosix multitaskingAccumulatorAtomic multitaskingAccumulatorTestAndSet $(PREAMBULE_OBJS) $(POSIX_OBJS) $(ATOMIC_OBJS) $(TESTANDSET_OBJS)
 
-# PHONY targets to prevent conflicts with files of the same name
-.PHONY: all clean debug
+runpreambule: clean preambule
+	./preambule
 
+runposix: clean posix
+	./multitaskingAccumulatorPosix
+
+runatomic: clean atomic
+	./multitaskingAccumulatorAtomic
+
+runtestandset: clean testandset
+	./multitaskingAccumulatorTestAndSet
