@@ -97,11 +97,4 @@ static void *sum(void *parameters)
 
 /*
 Potential improvements to ask the teacher about
-- incrementing the producer count could cause a race condition, what is the solution
-a mutex or an elegant c11 atomic?
-- the number of sensor? I used r_rand for a thred safe execution but it could be a misunderstanding of the software architecutre and 
-I could somehow get it from the iSensor Interface
-- 
-
-
 */

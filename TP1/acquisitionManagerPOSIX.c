@@ -31,6 +31,7 @@ static void *produce(void *params);
  */
 // mutexes
 pthread_mutex_t bufferLock;
+pthread_mutex_t produceCountLock;
 
 // Semaphores
 sem_t buffEmpty; // semaphore to indicate the number of empty spots in the buffer
@@ -101,6 +102,16 @@ void waitForFullBuffer(void)
 void signalFullBuffer(void)
 {
 	sem_post(&buffFull);
+}
+
+void lockeProducedCount(void)
+{
+	pthread_mutex_lock(&produceCountLock);
+}
+
+void unlockProducedCount(void)
+{
+	pthread_mutex_unlock(&produceCountLock);
 }
 
 MSG_BLOCK getMessage(void)
@@ -195,7 +206,9 @@ void *produce(void *params)
 		// increment the write index within wrap bounds
 		writeIndex = (writeIndex + 1) % BUFFER_SIZE;
 		// increment the produced count
+		lockeProducedCount();
 		incrementProducedCount();
+		unlockProducedCount();
 		// post semaphore to account for filled slot
 		signalFullBuffer();
 		// unlock the buffer
@@ -212,7 +225,4 @@ Potential improvements to ask the teacher about
 a mutex or an elegant c11 atomic?
 - the number of sensor? I used r_rand for a thred safe execution but it could be a misunderstanding of the software architecutre and
 I could somehow get it from the iSensor Interface
--
-
-
 */
