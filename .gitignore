@@ -1,0 +1,17 @@
+# Ignore object files
+*.o
+
+# Ignore binary outputs
+bin/*
+
+# Ignore temporary files
+*.tmp
+*.log
+*.bak
+
+# Ignore editor-specific files
+.vscode/
+
+# Ignore compiled output files
+*.out
+*.exe
